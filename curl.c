@@ -9,7 +9,7 @@ char *getdata(char *website)
     file.size = 0;
 
     curl = curl_easy_init();
-    curl_easy_setopt(curl, CURLOPT_URL, "http://undergroundsystems.org");
+    curl_easy_setopt(curl, CURLOPT_URL, website );
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_call);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)&file);
 

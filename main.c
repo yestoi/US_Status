@@ -1,13 +1,15 @@
 #include "curl.h"
 
+#define SITE "http://undergroundsystems.org"
+
 int main(int argc, char **argv)
 {
     char *data;
 
-    data = getdata("http://undergroundsystems.org");
+    data = getdata(SITE);
 
     //Do regex and notify code here
-    printf("%s", data);
+    printf("%s\n", data);
     //END
 
     if (data)
