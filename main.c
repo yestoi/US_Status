@@ -13,6 +13,7 @@
 int flag=0;
 int count=2;
 
+//This is our interface from curl to tidyhtml. 
 uint write_func(char *input, uint size, uint newbuff, TidyBuffer *ouput)
 {
     uint total;
@@ -30,24 +31,28 @@ void chomp(const char *str)
     }
 }
 
+//Now this is the ugly part. Dom Transversal.
 void getNewPost(TidyDoc doc, TidyNode root, char str[])
 {
     TidyNode child;
 
+    //Start from the root node and work our way down. It's recursive so you can't do some things
     for (child = tidyGetChild(root); child; child = tidyGetNext(child))
     {
         ctmbstr name = tidyNodeGetName(child);
-        //If it has a name it's a tag. We need to start somewhere so <td> works.
+        //If it has a name it's a tag. We need to start somewhere close to the new posts.
         if (name) {
             if (strcmp(name, "td") == 0) {
                 TidyAttr attr;
                 //Walk through the attribute list for a tag. Set flags for yoyo between tags/content
                 for (attr = tidyAttrFirst(child); attr; attr=tidyAttrNext(attr)) {
-                    if (flag == -1 && strcmp(tidyAttrValue(attr), "alt1") == 0) {
-                        flag = 2;
-                    }
+                    //Here we are edging towards our content. We set flags to yoyo
+                    //between the two conditions.
                     if (strcmp(tidyAttrValue(attr), "20%") == 0) {
                         flag = 1;
+                    }
+                    if (flag == -1 && strcmp(tidyAttrValue(attr), "alt1") == 0) {
+                        flag = 2;
                     }
                 }
             }
@@ -65,6 +70,7 @@ void getNewPost(TidyDoc doc, TidyNode root, char str[])
                     flag = -1;
                 }
                 if (flag == 2) {
+                    //Here we found our content. fill up the string given with it.
                     if (!strcmp(buf.bp, " ") == 0 && count) {
                         strcat(str, buf.bp);
                         strcat(str, "\n");
@@ -86,7 +92,6 @@ int main(int argc, char **argv)
     TidyBuffer data = {0};
     TidyBuffer error = {0};
     int err = 0;
-    int flag = 0;
     char post[50] = {0};
  
     doc = tidyCreate();
