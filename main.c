@@ -33,19 +33,49 @@ void chomp(const char *str)
 char *getNewPost(TidyDoc doc, TidyNode root)
 {
     TidyNode child;
-    char *str;
+    char *str = (char *) malloc(sizeof(char));
     
     for (child = tidyGetChild(root); child; child = tidyGetNext(child))
     {
         ctmbstr name = tidyNodeGetName(child);
         //If it has a name it's a tag. We need to start somewhere so <td> works.
         if (name) {
-            
+            if (strcmp(name, "td") == 0) {
+                TidyAttr attr;
+                //Walk through the attribute list for a tag. Set flags for yoyo between tags/content
+                for (attr = tidyAttrFirst(child); attr; attr=tidyAttrNext(attr)) {
+                    if (flag == -1 && strcmp(tidyAttrValue(attr), "alt1") == 0) {
+                        flag = 2;
+                    }
+                    if (strcmp(tidyAttrValue(attr), "20%") == 0) {
+                        flag = 1;
+                    }
+                }
+            }
         }
         
         //Anything else is cdata or text.
         else {
+            if (flag > 0) {
+                TidyBuffer buf;
+                tidyBufInit(&buf);
+                tidyNodeGetText(doc, child, &buf);
+                chomp(buf.bp);
 
+                if (strcmp(buf.bp, "Forum") == 0) {
+                    flag = -1;
+                }
+                if (flag == 2) {
+                    if (!strcmp(buf.bp, " ") == 0 && count) {
+                        printf("%s\n", buf.bp);
+                       // strcat(str, (char *)buf.bp);
+                        //printf("%s\n", str);
+                        --count;
+                    }
+
+                }
+                tidyBufFree(&buf);
+            }
         }
         getNewPost(doc, child);
     }
