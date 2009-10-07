@@ -41,46 +41,24 @@ void getNewPost(TidyDoc doc, TidyNode root, char str[])
     {
         ctmbstr name = tidyNodeGetName(child);
         //If it has a name it's a tag. We need to start somewhere close to the new posts.
-        if (name) {
-            if (strcmp(name, "td") == 0) {
-                TidyAttr attr;
-                //Walk through the attribute list for a tag. Set flags for yoyo between tags/content
-                for (attr = tidyAttrFirst(child); attr; attr=tidyAttrNext(attr)) {
-                    //Here we are edging towards our content. We set flags to yoyo
-                    //between the two conditions.
-                    if (strcmp(tidyAttrValue(attr), "20%") == 0) {
-                        flag = 1;
-                    }
-                    if (flag == -1 && strcmp(tidyAttrValue(attr), "alt1") == 0) {
-                        flag = 2;
-                    }
+        if (!name) {
+            TidyBuffer buf;
+            tidyBufInit(&buf);
+            tidyNodeGetText(doc, child, &buf);
+            chomp(buf.bp);
+
+            if (flag == 1) {
+                if (!strcmp(buf.bp, " ") == 0 && count) {
+                    strcat(str, buf.bp);
+                    strcat(str, "\n");
+                    count--;
                 }
             }
+            if (strcmp(buf.bp, "Forum") == 0) {
+                flag = 1;
+            }
         }
-        
         //Anything else is cdata or text.
-        else {
-            if (flag > 0) {
-                TidyBuffer buf;
-                tidyBufInit(&buf);
-                tidyNodeGetText(doc, child, &buf);
-                chomp(buf.bp);
-
-                if (strcmp(buf.bp, "Forum") == 0) {
-                    flag = -1;
-                }
-                if (flag == 2) {
-                    //Here we found our content. fill up the string given with it.
-                    if (!strcmp(buf.bp, " ") == 0 && count) {
-                        strcat(str, buf.bp);
-                        strcat(str, "\n");
-                        count--;
-                    }
-
-                }
-                tidyBufFree(&buf);
-            }
-        }
         getNewPost(doc, child, str);
     }
 }
