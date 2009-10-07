@@ -30,11 +30,10 @@ void chomp(const char *str)
     }
 }
 
-char *getNewPost(TidyDoc doc, TidyNode root)
+void getNewPost(TidyDoc doc, TidyNode root, char str[])
 {
     TidyNode child;
-    char *str = (char *) malloc(sizeof(char));
-    
+
     for (child = tidyGetChild(root); child; child = tidyGetNext(child))
     {
         ctmbstr name = tidyNodeGetName(child);
@@ -67,17 +66,16 @@ char *getNewPost(TidyDoc doc, TidyNode root)
                 }
                 if (flag == 2) {
                     if (!strcmp(buf.bp, " ") == 0 && count) {
-                        printf("%s\n", buf.bp);
-                       // strcat(str, (char *)buf.bp);
-                        //printf("%s\n", str);
-                        --count;
+                        strcat(str, buf.bp);
+                        strcat(str, "\n");
+                        count--;
                     }
 
                 }
                 tidyBufFree(&buf);
             }
         }
-        getNewPost(doc, child);
+        getNewPost(doc, child, str);
     }
 }
 
@@ -89,7 +87,7 @@ int main(int argc, char **argv)
     TidyBuffer error = {0};
     int err = 0;
     int flag = 0;
-    char *point;
+    char post[50] = {0};
  
     doc = tidyCreate();
     tidyOptSetBool(doc, TidyForceOutput, yes);
@@ -108,7 +106,8 @@ int main(int argc, char **argv)
         if (err >= 0) {
             err = tidyCleanAndRepair(doc);
             if (err >= 0) {
-                getNewPost(doc, tidyGetRoot(doc));
+                getNewPost(doc, tidyGetRoot(doc), post);
+                printf("%s", post);
             }
         }
     }
